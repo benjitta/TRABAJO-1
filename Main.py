@@ -1,12 +1,6 @@
-# =========================================================
-# PROYECTO DATA SCIENCE
-# Predicción de Generación Energética Solar
-# API NASA POWER + Machine Learning
-# =========================================================
-
-# =========================================================
-# IMPORTACIÓN DE LIBRERÍAS
-# =========================================================
+# prediccion de generacion energetica solar
+# datos desde NASA POWER API + machine learning
+# proyecto data science - ingenieria informatica
 
 import pandas as pd
 import numpy as np
@@ -14,51 +8,32 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import requests
 import warnings
-
 from datetime import datetime, timedelta
-
-from sklearn.model_selection import (
-    train_test_split,
-    cross_val_score
-)
-
-from sklearn.linear_model import (
-    LinearRegression,
-    LogisticRegression
-)
-
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.tree import DecisionTreeRegressor
-
 from sklearn.ensemble import RandomForestRegressor
-
 from sklearn.preprocessing import StandardScaler
-
 from sklearn.neighbors import KNeighborsClassifier
-
 from sklearn.metrics import (
-    r2_score,
-    mean_squared_error,
-    mean_absolute_error,
-    classification_report,
-    confusion_matrix
+    r2_score, mean_squared_error, mean_absolute_error,
+    classification_report, confusion_matrix
 )
-
 warnings.filterwarnings("ignore")
 
 # =========================================================
-# FASE 1 — EXTRACCIÓN DE DATOS NASA POWER
+# FASE 1 - extraccion de datos NASA POWER
 # =========================================================
+print("=" * 60)
+print("FASE 1 - extraccion de datos NASA POWER")
+print("=" * 60)
 
-print("=" * 60)
-print("FASE 1 — EXTRACCIÓN DE DATOS NASA POWER")
-print("=" * 60)
+print("\ndescargando datos...")
 
 fecha_fin = (datetime.now() - timedelta(days=30)).strftime('%Y%m%d')
-
 fecha_inicio = (datetime.now() - timedelta(days=395)).strftime('%Y%m%d')
 
 url = "https://power.larc.nasa.gov/api/temporal/hourly/point"
-
 params = {
     "parameters": "ALLSKY_SFC_SW_DWN,T2M",
     "community": "RE",
@@ -69,108 +44,56 @@ params = {
     "format": "JSON"
 }
 
-response = requests.get(
-    url,
-    params=params,
-    verify=False,
-    timeout=30
-)
-
+response = requests.get(url, params=params, verify=False, timeout=30)
 response.raise_for_status()
-
 data = response.json()
+print("datos descargados ok")
 
-print("\nDatos descargados correctamente desde NASA POWER.")
-
-# =========================================================
-# CONVERSIÓN A DATAFRAME
-# =========================================================
-
+# convertir a dataframe
 dict_radiacion = data['properties']['parameter']['ALLSKY_SFC_SW_DWN']
-
 dict_temperatura = data['properties']['parameter']['T2M']
 
-df_rad = pd.DataFrame(
-    list(dict_radiacion.items()),
-    columns=['Fecha_Hora', 'Radiacion_W_m2']
-)
+df_rad = pd.DataFrame(list(dict_radiacion.items()), columns=['Fecha_Hora', 'Radiacion_W_m2'])
+df_temp = pd.DataFrame(list(dict_temperatura.items()), columns=['Fecha_Hora', 'Temperatura_C'])
 
-df_temp = pd.DataFrame(
-    list(dict_temperatura.items()),
-    columns=['Fecha_Hora', 'Temperatura_C']
-)
+df_raw = pd.merge(df_rad, df_temp, on='Fecha_Hora')
+df_raw['Fecha_Hora'] = pd.to_datetime(df_raw['Fecha_Hora'], format='%Y%m%d%H')
 
-df_raw = pd.merge(
-    df_rad,
-    df_temp,
-    on='Fecha_Hora'
-)
-
-df_raw['Fecha_Hora'] = pd.to_datetime(
-    df_raw['Fecha_Hora'],
-    format='%Y%m%d%H'
-)
-
-# Exportar datos crudos
 df_raw.to_csv("datos_crudos_nasa.csv", index=False)
-
-print(f"\nDatos crudos guardados ({len(df_raw)} registros).")
+print(f"guardados {len(df_raw)} registros en datos_crudos_nasa.csv")
 
 # =========================================================
-# FASE 2 — LIMPIEZA Y PROCESAMIENTO
+# FASE 2 - limpieza y procesamiento
 # =========================================================
-
 print("\n" + "=" * 60)
-print("FASE 2 — LIMPIEZA Y PROCESAMIENTO")
+print("FASE 2 - limpieza y procesamiento")
 print("=" * 60)
 
+print("\nlimpiando datos...")
+
 df = df_raw.copy()
-
-# Reemplazar valores inválidos
 df = df.replace(-999.0, np.nan)
-
-# Eliminar nulos
 df = df.dropna()
-
-# Mantener solo horas con radiación positiva
+# solo filas con radiacion positiva (de noche no hay generacion)
 df = df[df['Radiacion_W_m2'] > 0]
-
 df = df.reset_index(drop=True)
 
-print(f"\nRegistros válidos: {len(df)}")
+print(f"registros validos tras limpieza: {len(df)}")
 
-# =========================================================
-# FEATURE ENGINEERING
-# =========================================================
-
-print("\nCalculando generación energética...")
-
+# calculo de generacion en MW
+# parametros del parque: 150.000 m2, eficiencia 21%, PR 0.75
 area_m2 = 150000
-
 eficiencia = 0.21
-
 performance_ratio = 0.75
 
-df['Generacion_MW'] = (
-    df['Radiacion_W_m2']
-    * area_m2
-    * eficiencia
-    * performance_ratio
-) / 1000000
+df['Generacion_MW'] = (df['Radiacion_W_m2'] * area_m2 * eficiencia * performance_ratio) / 1000000
 
-# Agregar ruido para simulación realista
+# ruido para simular variabilidad real
 np.random.seed(42)
+df['Generacion_MW'] = (df['Generacion_MW'] + np.random.normal(0, 0.5, len(df))).clip(lower=0)
 
-df['Generacion_MW'] = (
-    df['Generacion_MW']
-    + np.random.normal(0, 0.5, len(df))
-).clip(lower=0)
-
-# Exportar dataset limpio
 df.to_csv("datos_limpios_modelo.csv", index=False)
-
-print("\nDataset limpio guardado correctamente.")
-
+print("dataset limpio guardado en datos_limpios_modelo.csv")
 #EDA básico
 
 print("\nIniciando EDA...")
