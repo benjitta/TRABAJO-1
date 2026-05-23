@@ -22,13 +22,13 @@ from sklearn.metrics import (
 warnings.filterwarnings("ignore")
 
 # =========================================================
-# FASE 1 - extraccion de datos NASA POWER
+# FASE 1 - Extraccion de datos NASA POWER
 # =========================================================
 print("=" * 60)
-print("FASE 1 - extraccion de datos NASA POWER")
+print("FASE 1 - Extraccion de datos NASA POWER")
 print("=" * 60)
 
-print("\ndescargando datos...")
+print("\nDescargando datos...")
 
 fecha_fin = (datetime.now() - timedelta(days=30)).strftime('%Y%m%d')
 fecha_inicio = (datetime.now() - timedelta(days=395)).strftime('%Y%m%d')
@@ -47,9 +47,9 @@ params = {
 response = requests.get(url, params=params, verify=False, timeout=30)
 response.raise_for_status()
 data = response.json()
-print("datos descargados ok")
+print("Datos descargados ok")
 
-# convertir a dataframe
+# Convertir a dataframe
 dict_radiacion = data['properties']['parameter']['ALLSKY_SFC_SW_DWN']
 dict_temperatura = data['properties']['parameter']['T2M']
 
@@ -60,40 +60,41 @@ df_raw = pd.merge(df_rad, df_temp, on='Fecha_Hora')
 df_raw['Fecha_Hora'] = pd.to_datetime(df_raw['Fecha_Hora'], format='%Y%m%d%H')
 
 df_raw.to_csv("datos_crudos_nasa.csv", index=False)
-print(f"guardados {len(df_raw)} registros en datos_crudos_nasa.csv")
+print(f"Guardados {len(df_raw)} registros en datos_crudos_nasa.csv")
 
 # =========================================================
-# FASE 2 - limpieza y procesamiento
+# FASE 2 - Limpieza y procesamiento
 # =========================================================
 print("\n" + "=" * 60)
-print("FASE 2 - limpieza y procesamiento")
+print("FASE 2 - Limpieza y procesamiento")
 print("=" * 60)
 
-print("\nlimpiando datos...")
+print("\nLimpiando datos...")
 
 df = df_raw.copy()
 df = df.replace(-999.0, np.nan)
 df = df.dropna()
-# solo filas con radiacion positiva (de noche no hay generacion)
+# Solo filas con radiacion positiva (de noche no hay generacion)
 df = df[df['Radiacion_W_m2'] > 0]
 df = df.reset_index(drop=True)
 
-print(f"registros validos tras limpieza: {len(df)}")
+print(f"Registros validos tras limpieza: {len(df)}")
 
-# calculo de generacion en MW
-# parametros del parque: 150.000 m2, eficiencia 21%, PR 0.75
+# Calculo de generacion en MW
+# Parametros del parque: 150.000 m2, eficiencia 21%, PR 0.75
 area_m2 = 150000
 eficiencia = 0.21
 performance_ratio = 0.75
 
 df['Generacion_MW'] = (df['Radiacion_W_m2'] * area_m2 * eficiencia * performance_ratio) / 1000000
 
-# ruido para simular variabilidad real
+# Ruido para simular variabilidad real
 np.random.seed(42)
 df['Generacion_MW'] = (df['Generacion_MW'] + np.random.normal(0, 0.5, len(df))).clip(lower=0)
 
 df.to_csv("datos_limpios_modelo.csv", index=False)
-print("dataset limpio guardado en datos_limpios_modelo.csv")
+print("Dataset limpio guardado en datos_limpios_modelo.csv")
+
 #EDA básico
 
 print("\nIniciando EDA...")
