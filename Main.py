@@ -171,7 +171,7 @@ coef_df = pd.DataFrame({
 print("\ncoeficientes:")
 print(coef_df)
 
-#VALIDACIÓN CRUZADA
+# validacion cruzada
 
 scores = cross_val_score(
     modelo_lineal,
@@ -183,17 +183,13 @@ scores = cross_val_score(
 
 print(f"\nR² promedio CV: {scores.mean():.4f}")
 
-#ÁRBOL DE DECISIÓN
+# arbol de decision
 
 print("\n" + "=" * 60)
-print("FASE 6 — ÁRBOL DE DECISIÓN")
+print(" Árbol de decisión")
 print("=" * 60)
 
-arbol = DecisionTreeRegressor(
-    max_depth=5,
-    min_samples_leaf=10,
-    random_state=42
-)
+arbol = DecisionTreeRegressor(max_depth=5, min_samples_leaf=10, random_state=42)
 
 arbol.fit(X_train, y_train)
 
@@ -201,25 +197,19 @@ y_pred_arbol = arbol.predict(X_test)
 
 r2_arbol = r2_score(y_test, y_pred_arbol)
 
-rmse_arbol = np.sqrt(
-    mean_squared_error(y_test, y_pred_arbol)
-)
+rmse_arbol = np.sqrt(mean_squared_error(y_test, y_pred_arbol))
 
 print(f"\nR² Árbol : {r2_arbol:.4f}")
 print(f"RMSE Árbol: {rmse_arbol:.4f}")
 
 
-#RANDOM FOREST
+# random forest
 
 print("\n" + "=" * 60)
-print("FASE 7 — RANDOM FOREST")
+print(" Random forest")
 print("=" * 60)
 
-rf = RandomForestRegressor(
-    n_estimators=100,
-    max_depth=5,
-    random_state=42
-)
+rf = RandomForestRegressor( n_estimators=100, max_depth=5, random_state=42)
 
 rf.fit(X_train, y_train)
 
@@ -227,35 +217,30 @@ y_pred_rf = rf.predict(X_test)
 
 r2_rf = r2_score(y_test, y_pred_rf)
 
-rmse_rf = np.sqrt(
-    mean_squared_error(y_test, y_pred_rf)
-)
+rmse_rf = np.sqrt(mean_squared_error(y_test, y_pred_rf))
 
 print(f"\nR² RF   : {r2_rf:.4f}")
 print(f"RMSE RF : {rmse_rf:.4f}")
 
-#Importancia variables
+# importancia variables
 importancias = pd.DataFrame({
     'Variable': X.columns,
     'Importancia': rf.feature_importances_
 })
 
-print("\nImportancia de Variables:")
+print("\n Importancia de variables:")
 print(importancias)
 
-# CLASIFICACIÓN
+# clasificación
 
 print("\n" + "=" * 60)
-print("FASE 8 — CLASIFICACIÓN")
+print(" Clasificación ")
 print("=" * 60)
 
+#divido en alta o baja generacion usando la mediana como umbral
 mediana = df['Generacion_MW'].median()
 
-df['Alta_Generacion'] = np.where(
-    df['Generacion_MW'] > mediana,
-    1,
-    0
-)
+df['Alta_Generacion'] = np.where(df['Generacion_MW'] > mediana,1,0)
 
 y_clas = df['Alta_Generacion']
 
@@ -266,7 +251,7 @@ X_train_c, X_test_c, y_train_c, y_test_c = train_test_split(
     random_state=42
 )
 
-#Escalado
+# escalado
 scaler = StandardScaler()
 
 X_train_scaled = scaler.fit_transform(X_train_c)
@@ -283,7 +268,7 @@ log_model.fit(X_train_scaled, y_train_c)
 
 y_pred_log = log_model.predict(X_test_scaled)
 
-print("\nREGRESIÓN LOGÍSTICA")
+print("\n Regresión logística")
 print(classification_report(y_test_c, y_pred_log))
 
 # =========================================================
