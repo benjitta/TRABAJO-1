@@ -272,3 +272,131 @@ scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train_c)
 
 X_test_scaled = scaler.transform(X_test_c)
+
+# =========================================================
+# REGRESIÓN LOGÍSTICA
+# =========================================================
+
+log_model = LogisticRegression()
+
+log_model.fit(X_train_scaled, y_train_c)
+
+y_pred_log = log_model.predict(X_test_scaled)
+
+print("\nREGRESIÓN LOGÍSTICA")
+print(classification_report(y_test_c, y_pred_log))
+
+# =========================================================
+# KNN
+# =========================================================
+
+knn = KNeighborsClassifier(n_neighbors=5)
+
+knn.fit(X_train_scaled, y_train_c)
+
+y_pred_knn = knn.predict(X_test_scaled)
+
+print("\nKNN")
+print(classification_report(y_test_c, y_pred_knn))
+
+# =========================================================
+# MATRIZ DE CONFUSIÓN
+# =========================================================
+
+matriz = confusion_matrix(
+    y_test_c,
+    y_pred_knn
+)
+
+plt.figure(figsize=(6,5))
+
+sns.heatmap(
+    matriz,
+    annot=True,
+    fmt='d',
+    cmap='Blues'
+)
+
+plt.title("Matriz de Confusión")
+
+plt.xlabel("Predicción")
+
+plt.ylabel("Real")
+
+plt.tight_layout()
+
+plt.show()
+
+# =========================================================
+# FASE 9 — COMPARACIÓN FINAL
+# =========================================================
+
+comparacion = pd.DataFrame({
+    'Modelo': [
+        'Regresión Lineal',
+        'Árbol de Decisión',
+        'Random Forest'
+    ],
+    'R2': [
+        r2_lineal,
+        r2_arbol,
+        r2_rf
+    ],
+    'RMSE': [
+        rmse_lineal,
+        rmse_arbol,
+        rmse_rf
+    ]
+})
+
+print("\n" + "=" * 60)
+print("COMPARACIÓN FINAL")
+print("=" * 60)
+
+print(comparacion)
+
+# =========================================================
+# FASE 10 — NUEVA PREDICCIÓN
+# =========================================================
+
+nuevo = pd.DataFrame({
+    'Radiacion_W_m2': [850],
+    'Temperatura_C': [28]
+})
+
+pred_lineal = modelo_lineal.predict(nuevo)[0]
+
+pred_arbol = arbol.predict(nuevo)[0]
+
+pred_rf = rf.predict(nuevo)[0]
+
+print("\n" + "=" * 60)
+print("NUEVAS PREDICCIONES")
+print("=" * 60)
+
+print(f"Lineal : {pred_lineal:.2f} MW")
+print(f"Árbol  : {pred_arbol:.2f} MW")
+print(f"RF     : {pred_rf:.2f} MW")
+
+# =========================================================
+# CONCLUSIONES
+# =========================================================
+
+print("\n" + "=" * 60)
+print("CONCLUSIONES")
+print("=" * 60)
+
+print("""
+1. La radiación solar presenta una fuerte relación
+   con la generación energética.
+
+2. Random Forest suele entregar mejor precisión
+   predictiva.
+
+3. La regresión lineal es el modelo más interpretable.
+
+4. Los árboles permiten detectar relaciones no lineales.
+
+5. La clasificación permite identificar períodos
+   de alta generación energética.
+""")
