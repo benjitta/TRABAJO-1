@@ -351,23 +351,16 @@ print(
     classification_report( y_test_c, pred_logistica))
 
 # KNN
-knn = KNeighborsClassifier(n_neighbors=5)
-knn.fit(X_train_scaled, y_train_c)
-y_pred_knn = knn.predict(X_test_scaled)
 
-print("\nKNN")
-print(classification_report(y_test_c, y_pred_knn))
+modelo_knn = KNeighborsClassifier(n_neighbors=5)
 
-# Matriz de confusion
-matriz = confusion_matrix(y_test_c, y_pred_knn)
+modelo_knn.fit(X_train_escalado,y_train_c)
 
-plt.figure(figsize=(6,5))
-sns.heatmap(matriz, annot=True, fmt='d', cmap='Blues')
-plt.title("Matriz de confusion")
-plt.xlabel("Prediccion")
-plt.ylabel("Real")
-plt.tight_layout()
-plt.show()
+pred_knn = modelo_knn.predict(X_test_escalado)
+
+print("\nResultados KNN:\n")
+
+print(classification_report(y_test_c, pred_knn))
 
 # =========================================================
 # Comparacion final
