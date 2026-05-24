@@ -21,9 +21,8 @@ from sklearn.metrics import (
 )
 warnings.filterwarnings("ignore")
 
-# =========================================================
-# FASE 1 - Extraccion de datos NASA POWER
-# =========================================================
+#Extraccion de datos NASA POWER
+
 print("=" * 60)
 print("FASE 1 - Extraccion de datos NASA POWER")
 print("=" * 60)
@@ -50,6 +49,7 @@ data = response.json()
 print("Datos descargados ok")
 
 # Convertir a dataframe
+
 dict_radiacion = data['properties']['parameter']['ALLSKY_SFC_SW_DWN']
 dict_temperatura = data['properties']['parameter']['T2M']
 
@@ -62,9 +62,8 @@ df_raw['Fecha_Hora'] = pd.to_datetime(df_raw['Fecha_Hora'], format='%Y%m%d%H')
 df_raw.to_csv("datos_crudos_nasa.csv", index=False)
 print(f"Guardados {len(df_raw)} registros en datos_crudos_nasa.csv")
 
-# =========================================================
-# FASE 2 - Limpieza y procesamiento
-# =========================================================
+#Limpieza y procesamiento
+
 print("\n" + "=" * 60)
 print("FASE 2 - Limpieza y procesamiento")
 print("=" * 60)
@@ -81,6 +80,7 @@ df = df.reset_index(drop=True)
 print(f"Registros validos tras limpieza: {len(df)}")
 
 # Calculo de generacion en MW
+
 area_m2 = 150000
 eficiencia = 0.21
 performance_ratio = 0.75
@@ -88,6 +88,7 @@ performance_ratio = 0.75
 df['Generacion_MW'] = (df['Radiacion_W_m2'] * area_m2 * eficiencia * performance_ratio) / 1000000
 
 # Ruido para simular variabilidad real
+
 np.random.seed(42)
 df['Generacion_MW'] = (df['Generacion_MW'] + np.random.normal(0, 0.5, len(df))).clip(lower=0)
 
@@ -108,11 +109,13 @@ print("\nDescribe:")
 print(df.describe())
 
 # media y std de las variables que nos interesan
+
 estadisticas = df[['Radiacion_W_m2', 'Temperatura_C', 'Generacion_MW']].agg(['mean', 'std'])
 print("\nmedia y desviacion estandar:")
 print(estadisticas)
 
 # correlacion entre variables
+
 plt.figure(figsize=(8,6))
 temp_corr = df[['Radiacion_W_m2', 'Temperatura_C', 'Generacion_MW']].corr()
 sns.heatmap(temp_corr, annot=True, cmap='coolwarm', fmt=".2f")
@@ -121,6 +124,7 @@ plt.tight_layout()
 plt.show()
 
 # boxplot outliers
+
 plt.figure(figsize=(10,5))
 sns.boxplot(data=df[['Radiacion_W_m2', 'Temperatura_C', 'Generacion_MW']])
 plt.title("outliers - boxplot")
@@ -153,6 +157,7 @@ y_pred_lineal = modelo_lineal.predict(X_test)
 print("listo")
 
 # métricas
+
 r2_lineal = r2_score(y_test, y_pred_lineal)
 rmse_lineal = np.sqrt(mean_squared_error(y_test, y_pred_lineal))
 mae_lineal = mean_absolute_error(y_test, y_pred_lineal)
@@ -162,6 +167,7 @@ print(f"RMSE : {rmse_lineal:.4f}")
 print(f"MAE  : {mae_lineal:.4f}")
 
 # ver qué variable pesa más
+
 coef_df = pd.DataFrame({
     'Variable': X.columns,
     'Coeficiente': modelo_lineal.coef_
@@ -257,9 +263,9 @@ X_train_scaled = scaler.fit_transform(X_train_c)
 
 X_test_scaled = scaler.transform(X_test_c)
 
-# =========================================================
-# REGRESIÓN LOGÍSTICA
-# =========================================================
+
+# Regresion logistica
+
 
 log_model = LogisticRegression()
 
@@ -270,9 +276,8 @@ y_pred_log = log_model.predict(X_test_scaled)
 print("\n Regresión logística")
 print(classification_report(y_test_c, y_pred_log))
 
-# =========================================================
+
 # KNN
-# =========================================================
 
 knn = KNeighborsClassifier(n_neighbors=5)
 
@@ -283,9 +288,7 @@ y_pred_knn = knn.predict(X_test_scaled)
 print("\nKNN")
 print(classification_report(y_test_c, y_pred_knn))
 
-# =========================================================
-# MATRIZ DE CONFUSIÓN
-# =========================================================
+# Matriz de confusion
 
 matriz = confusion_matrix(
     y_test_c,
@@ -311,9 +314,9 @@ plt.tight_layout()
 
 plt.show()
 
-# =========================================================
-# FASE 9 — COMPARACIÓN FINAL
-# =========================================================
+
+# Comparacion final
+
 
 comparacion = pd.DataFrame({
     'Modelo': [
@@ -339,9 +342,8 @@ print("=" * 60)
 
 print(comparacion)
 
-# =========================================================
-# FASE 10 — NUEVA PREDICCIÓN
-# =========================================================
+
+#Nueva prediccion
 
 nuevo = pd.DataFrame({
     'Radiacion_W_m2': [850],
@@ -362,9 +364,8 @@ print(f"Lineal : {pred_lineal:.2f} MW")
 print(f"Árbol  : {pred_arbol:.2f} MW")
 print(f"RF     : {pred_rf:.2f} MW")
 
-# =========================================================
-# CONCLUSIONES
-# =========================================================
+# Conclusiones 
+
 
 print("\n" + "=" * 60)
 print("CONCLUSIONES")
