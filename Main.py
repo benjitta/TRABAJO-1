@@ -1,6 +1,7 @@
 # Prediccion de generacion energetica solar
 # Datos desde NASA POWER API + machine learning
 # Proyecto data science - ingenieria informatica
+# Enlace de presentacion "https://canva.link/dlul8l0tzuwgx9d"
 
 import pandas as pd
 import numpy as np
