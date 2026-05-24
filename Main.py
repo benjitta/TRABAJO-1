@@ -74,14 +74,13 @@ print("\nLimpiando datos...")
 df = df_raw.copy()
 df = df.replace(-999.0, np.nan)
 df = df.dropna()
-# Solo filas con radiacion positiva (de noche no hay generacion)
+# Solo filas con radiacion positiva
 df = df[df['Radiacion_W_m2'] > 0]
 df = df.reset_index(drop=True)
 
 print(f"Registros validos tras limpieza: {len(df)}")
 
 # Calculo de generacion en MW
-# Parametros del parque: 150.000 m2, eficiencia 21%, PR 0.75
 area_m2 = 150000
 eficiencia = 0.21
 performance_ratio = 0.75
