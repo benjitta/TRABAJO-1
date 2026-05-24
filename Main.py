@@ -239,8 +239,15 @@ plt.tight_layout()
 plt.show()
 
 # Validacion cruzada
-scores = cross_val_score(modelo_lineal, X, y, cv=5, scoring='r2')
-print(f"\nR2 promedio CV: {scores.mean():.4f}")
+
+print("\n" + "=" * 60)
+print("Validacion cruzada")
+print("=" * 60)
+
+puntajes_cv = cross_val_score( modelo_lineal,X, y,cv=5,scoring='r2')
+
+print(f"\nR2 promedio CV : {puntajes_cv.mean():.4f}")
+print(f"Desviacion CV  : {puntajes_cv.std():.4f}")
 
 # =========================================================
 # Arbol de decision
@@ -321,17 +328,27 @@ X_train_c, X_test_c, y_train_c, y_test_c = train_test_split(
 # Escalado necesario porque KNN y regresion logistica son sensibles
 # a la magnitud de las variables, sin esto la distancia entre puntos
 # queda distorsionada por las diferencias de escala entre radiacion y temperatura
-scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train_c)
-X_test_scaled = scaler.transform(X_test_c)
+escalador = StandardScaler()
+
+X_train_escalado = escalador.fit_transform(X_train_c)
+
+X_test_escalado = escalador.transform(X_test_c)
 
 # Regresion logistica
-log_model = LogisticRegression()
-log_model.fit(X_train_scaled, y_train_c)
-y_pred_log = log_model.predict(X_test_scaled)
+# =========================================================
+# Regresion logistica
+# =========================================================
 
-print("\nRegresion logistica")
-print(classification_report(y_test_c, y_pred_log))
+modelo_logistico = LogisticRegression()
+
+modelo_logistico.fit(X_train_escalado, y_train_c)
+
+pred_logistica = modelo_logistico.predict(X_test_escalado)
+
+print("\nResultados regresion logistica:\n")
+
+print(
+    classification_report( y_test_c, pred_logistica))
 
 # KNN
 knn = KNeighborsClassifier(n_neighbors=5)
